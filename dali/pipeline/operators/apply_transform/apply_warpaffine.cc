@@ -44,10 +44,13 @@ void ApplyWarpAffine<CPUBackend>::GetNativeInterpFlag()
 
 template<>
 void ApplyWarpAffine<CPUBackend>::RunImpl(SampleWorkspace * ws, const int idx) {
-  auto &image_tensor = ws->Input<CPUBackend>(0);
-  auto &trans_tensor = ws->Input<CPUBackend>(1);
+  DALI_ENFORCE(ws->NumInput() % GetNumInputSets() == 0,
+        "total number of inputs must be dividable by number of input sets");
+  const int actual_num_input = ws->NumInput() / GetNumInputSets();
+  auto &image_tensor = ws->Input<CPUBackend>(idx * actual_num_input);
+  auto &trans_tensor = ws->Input<CPUBackend>(idx * actual_num_input + 1);
 
-  auto output = ws->Output<CPUBackend>(0);
+  auto output = ws->Output<CPUBackend>(idx);
 
   int mat_type;
   DALI_ENFORCE(IsType<float>(trans_tensor.type()), 

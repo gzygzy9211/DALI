@@ -24,6 +24,15 @@ namespace dali {
 
 typedef NppiSize DALISize;
 
+template <DALIDataType dtype, DALITensorLayout layout, int channels>
+inline static 
+NppStatus
+nppiWarpAffine(const void *pSrc, NppiSize oSrcSize, int nSrcStep, NppiRect oSrcROI, 
+                     void *pDst,                    int nDstStep, NppiRect oDstROI,
+               const double aCoeffs[2][3], int eInterpolation) {
+  
+}
+
 #if NPP_VERSION_MAJOR < 8
 #error "Only Support Cuda 8 or Higher"
 #elif NPP_VERSION_MAJOR == 8
