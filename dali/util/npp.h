@@ -22,15 +22,39 @@
 
 namespace dali {
 
+template <typename Backend>
+class TensorList;
+
 typedef NppiSize DALISize;
 
-template <DALIDataType dtype, DALITensorLayout layout, int channels>
-inline static 
-NppStatus
-nppiWarpAffine(const void *pSrc, NppiSize oSrcSize, int nSrcStep, NppiRect oSrcROI, 
-                     void *pDst,                    int nDstStep, NppiRect oDstROI,
-               const double aCoeffs[2][3], int eInterpolation) {
-  
+template <DALIDataType dtype> struct NppTypeWrapper { typedef void npp_t };
+template <> struct NppTypeWrapper<DALI_UINT8> { typedef Npp8u npp_t; };
+template <> struct NppTypeWrapper<DALI_INT32> { typedef Npp32s npp_t; };
+template <> struct NppTypeWrapper<DALI_FLOAT> { typedef Npp32f npp_t; };
+template <> struct NppTypeWrapper<DALI_FLOAT64> { typedef Npp64f npp_t; };
+
+template <DALIDataType dtype, DALITensorLayout layout> struct NppWarpAffineWrapper {
+ public:
+  typedef typename NppTypeWrapper<dtype>::npp_t npp_t;
+  // assume that output has been *reshaped*
+  static void call(const TensorList<GPUBackend> &input, const std::vector<NppiRect> &input_roi, 
+                         TensorList<GPUBackend> *output, float* trans_matrix, int interp_flag);
+};
+template <DALIDataType dtype> struct NppWarpAffineWrapper<dtype, DALI_NHWC> {
+ private:
+  typedef NppStatus (*warp_affine_func_t)(const npp_t *pSrc, NppiSize oSrcSize, int nSrcStep, NppiRect oSrcROI, 
+                                                npp_t *pDst,                    int nDstStep, NppiRect oDstROI,
+                                          const double aCoeffs[2][3], int eInterpolation);
+  const static int MAX_SUPPORTED_CHANNLES = 4;
+  const static bool supported_channels_[MAX_SUPPORTED_CHANNLES];
+  const static warp_affine_func_t warp_impl_[MAX_SUPPORTED_CHANNLES];
+};
+template <DALIDataType dtype> struct NppWarpAffineWrapper<dtype, DALI_NCHW> {
+ private:
+  typedef NppStatus (*warp_affine_func_t)(const npp_t *pSrc[], NppiSize oSrcSize, int nSrcStep, NppiRect oSrcROI, 
+                                                npp_t *pDst[],                    int nDstStep, NppiRect oDstROI,
+                                          const double aCoeffs[2][3], int eInterpolation);
+  const static warp_affine_func_t warp_impl_[4];
 }
 
 #if NPP_VERSION_MAJOR < 8
