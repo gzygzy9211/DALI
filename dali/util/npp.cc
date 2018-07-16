@@ -62,11 +62,11 @@ void NppWarpAffineWrapper<dtype, DALI_NHWC>::call(
   const TensorList<GPUBackend> &input, const std::vector<NppiRect> &input_rois, 
         TensorList<GPUBackend> *output, float* trans_matrix, int interp_flag) {
 
-  double coeffs[2][3] = {
-    {trans_matrix[0], trans_matrix[1], trans_matrix[2]},
-    {trans_matrix[3], trans_matrix[4], trans_matrix[5]}
-  };
   for (int i = 0; i < input.ntensor(); i ++) {
+    double coeffs[2][3] = {
+      {trans_matrix[6 * i + 0], trans_matrix[6 * i + 1], trans_matrix[6 * i + 2]},
+      {trans_matrix[6 * i + 3], trans_matrix[6 * i + 4], trans_matrix[6 * i + 5]}
+    };
     const npp_t *pSrc = input.tensor<npp_t>(i);
     auto input_shape = input.tensor_shape(i);
     auto output_shape = output->tensor_shape(i);
@@ -98,11 +98,11 @@ void NppWarpAffineWrapper<dtype, DALI_NCHW>::call(
   const TensorList<GPUBackend> &input, const std::vector<NppiRect> &input_rois, 
         TensorList<GPUBackend> *output, float* trans_matrix, int interp_flag) {
 
-  double coeffs[2][3] = {
-    {trans_matrix[0], trans_matrix[1], trans_matrix[2]},
-    {trans_matrix[3], trans_matrix[4], trans_matrix[5]}
-  };
   for (int i = 0; i < input.ntensor(); i ++) {
+    double coeffs[2][3] = {
+      {trans_matrix[6 * i + 0], trans_matrix[6 * i + 1], trans_matrix[6 * i + 2]},
+      {trans_matrix[6 * i + 3], trans_matrix[6 * i + 4], trans_matrix[6 * i + 5]}
+    };
     const npp_t *pSrc = input.tensor<npp_t>(i);
     auto input_shape = input.tensor_shape(i);
     auto output_shape = output->tensor_shape(i);
